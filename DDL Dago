@@ -1,0 +1,162 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema database_dago
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS database_dago DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci ;
+USE database_dago ;
+
+-- -----------------------------------------------------
+-- Table database_dago.tabel_kasir
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS database_dago.tabel_kasir (
+  id_kasir VARCHAR(5) NOT NULL,
+  nama_kasir VARCHAR(45) NOT NULL,
+  PRIMARY KEY (id_kasir))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table database_dago.tabel_pelanggan
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS database_dago.tabel_pelanggan (
+  id_pelanggan VARCHAR(5) NOT NULL,
+  nama_pelanggan VARCHAR(45) NOT NULL,
+  no_telepon VARCHAR(15) NULL,
+  PRIMARY KEY (id_pelanggan))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table database_dago.tabel_ruangan
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS database_dago.tabel_ruangan (
+  id_ruangan VARCHAR(5) NOT NULL,
+  nama_ruangan VARCHAR(45) NOT NULL,
+  harga_per_jam DECIMAL(10,2) NOT NULL,
+  PRIMARY KEY (id_ruangan))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table database_dago.tabel_pembayaran
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS database_dago.tabel_pembayaran (
+  id_pembayaran VARCHAR(5) NOT NULL,
+  jenis_pembayaran VARCHAR(45) NOT NULL,
+  PRIMARY KEY (id_pembayaran))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table database_dago.tabel_vendor
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS database_dago.tabel_vendor (
+  id_vendor VARCHAR(5) NOT NULL,
+  nama_vendor VARCHAR(45) NOT NULL,
+  PRIMARY KEY (id_vendor))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table database_dago.tabel_fnb
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS database_dago.tabel_fnb (
+  id_item VARCHAR(5) NOT NULL,
+  nama_item VARCHAR(45) NOT NULL,
+  harga DECIMAL(10,2) NOT NULL,
+  id_vendor VARCHAR(5) NOT NULL,
+  PRIMARY KEY (id_item),
+  INDEX id_vendor_fnb_idx (id_vendor ASC) VISIBLE,
+  CONSTRAINT id_vendor_fnb
+    FOREIGN KEY (id_vendor)
+    REFERENCES database_dago.tabel_vendor (id_vendor)
+    ON DELETE RESTRICT  -- REVISI
+    ON UPDATE CASCADE)  -- REVISI
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table database_dago.tabel_transaksi
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS database_dago.tabel_transaksi (
+  id_transaksi VARCHAR(6) NOT NULL,
+  tanggal_transaksi DATETIME NOT NULL,
+  id_pelanggan VARCHAR(5) NOT NULL,
+  id_kasir VARCHAR(5) NOT NULL,
+  id_pembayaran VARCHAR(5) NOT NULL,
+  token_wifi VARCHAR(45) NOT NULL,
+  PRIMARY KEY (id_transaksi),
+  INDEX id_pelanggan_transaksi_idx (id_pelanggan ASC) VISIBLE,
+  INDEX id_kasir_transaksi_idx (id_kasir ASC) VISIBLE,
+  INDEX id_pembayaran_transaksi_idx (id_pembayaran ASC) VISIBLE,
+  CONSTRAINT id_pelanggan_transaksi
+    FOREIGN KEY (id_pelanggan)
+    REFERENCES database_dago.tabel_pelanggan (id_pelanggan)
+    ON DELETE RESTRICT  -- REVISI
+    ON UPDATE CASCADE, -- REVISI
+  CONSTRAINT id_kasir_transaksi
+    FOREIGN KEY (id_kasir)
+    REFERENCES database_dago.tabel_kasir (id_kasir)
+    ON DELETE RESTRICT  -- REVISI
+    ON UPDATE CASCADE, -- REVISI
+  CONSTRAINT id_pembayaran_transaksi
+    FOREIGN KEY (id_pembayaran)
+    REFERENCES database_dago.tabel_pembayaran (id_pembayaran)
+    ON DELETE RESTRICT  -- REVISI
+    ON UPDATE CASCADE) -- REVISI
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table database_dago.tabel_transaksi_ruangan
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS database_dago.tabel_transaksi_ruangan (
+  id_transaksi VARCHAR(6) NOT NULL,
+  id_ruangan VARCHAR(5) NOT NULL,
+  waktu_mulai TIME NOT NULL,
+  waktu_selesai TIME NOT NULL,
+  PRIMARY KEY (id_transaksi, id_ruangan),
+  INDEX id_ruangan_transaksi_idx (id_ruangan ASC) VISIBLE,
+  CONSTRAINT id_ruangan_transaksi
+    FOREIGN KEY (id_ruangan)
+    REFERENCES database_dago.tabel_ruangan (id_ruangan)
+    ON DELETE RESTRICT  -- REVISI
+    ON UPDATE CASCADE, -- REVISI
+  CONSTRAINT id_transaksi_ruangan
+    FOREIGN KEY (id_transaksi)
+    REFERENCES database_dago.tabel_transaksi (id_transaksi)
+    ON DELETE CASCADE   -- REVISI
+    ON UPDATE CASCADE)  -- REVISI
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table database_dago.tabel_transaksi_fnb
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS database_dago.tabel_transaksi_fnb (
+  id_transaksi VARCHAR(6) NOT NULL,
+  id_item VARCHAR(5) NOT NULL,
+  kuantitas INT NOT NULL,
+  PRIMARY KEY (id_transaksi, id_item),
+  INDEX id_item_fnb_idx (id_item ASC) VISIBLE,
+  CONSTRAINT id_transaksi_fnb
+    FOREIGN KEY (id_transaksi)
+    REFERENCES database_dago.tabel_transaksi (id_transaksi)
+    ON DELETE CASCADE   -- REVISI
+    ON UPDATE CASCADE, -- REVISI
+  CONSTRAINT id_item_fnb
+    FOREIGN KEY (id_item)
+    REFERENCES database_dago.tabel_fnb (id_item)
+    ON DELETE RESTRICT  -- REVISI
+    ON UPDATE CASCADE)  -- REVISI
+ENGINE = InnoDB;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
